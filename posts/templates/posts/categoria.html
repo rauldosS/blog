@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load humanize %}
 
+{% block titulo %}
+    Categoria
+{% endblock %}
+
 {% block conteudo %}
 <div class="card-columns mt-4">
     {% for post in posts %}
