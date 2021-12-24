@@ -1,23 +1,39 @@
 from django.forms import ModelForm
 from .models import Comentario
+import requests
 
 class FormComentario(ModelForm):
     # validações
     def clean(self):
-        data = self.cleaned_data
+        raw_data = self.data
+        recaptcha_response = raw_data.get('g-recaptcha-response')
+        recaptcha_request = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data={
+                'secret': '6Lfds8QdAAAAAOl-JT_xnUm8euIQ5W4WcCqCA9rs',
+                'response': recaptcha_response
+            }
+        )
+        recaptcha_result = recaptcha_request.json()
 
-        nome = data.get('nome')
-        email = data.get('email')
-        comentario = data.get('comentario')
+        print(recaptcha_result)
+        print(recaptcha_result.get('success'))
 
-        if len(nome):
+        if not recaptcha_result.get('success'):
             self.add_error(
-                'nome', 'Nome precisa ter no mínimo 5 caracteres.'
+                'comentario',
+                'Desculpe Mr. Robot, ocorreu um erro.'
             )
 
-        if not comentario:
+        cleaned_data = self.cleaned_data
+        nome = cleaned_data.get('nome')
+        email = cleaned_data.get('email')
+        comentario = cleaned_data.get('comentario')
+
+        if len(nome) < 5:
             self.add_error(
-                'comentario', 'Adicione um comentário.'
+                'nome',
+                'Nome precisa ter mais que 5 caracteres.'
             )
 
     class Meta:
